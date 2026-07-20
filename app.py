@@ -7,23 +7,20 @@ from google.oauth2.service_account import Credentials
 # ==========================================
 # 1. KONFIGURASI KONEKSI GOOGLE SHEETS
 # ==========================================
-scopes = [
-    "https://www.googleapis.com/auth/spreadsheets",
-    "https://www.googleapis.com/auth/drive"
-]
+# 1. Ambil teks JSON mentah dari Secrets dan simpan ke file sementara di server
+json_string = st.secrets["textkey"]["json_data"]
 
-# Pastikan file credentials.json berada di folder proyek yang sama dengan file app.py ini
-credentials_dict = dict(st.secrets["gcp_service_account"])
+# Tulis string tersebut menjadi file fisik 'secret_key.json' di server Streamlit
+with open("secret_key.json", "w") as f:
+    f.write(json_string)
 
-raw_private_key = base64.b64decode(credentials_dict["private_key_base64"]).decode("utf-8")
-credentials_dict["private_key"] = raw_private_key
+# 2. Login menggunakan metode bawaan gspread yang sangat stabil
+client = gspread.service_account(filename="secret_key.json")
 
-if "private_key_base64" in credentials_dict:
-    del credentials_dict["private_key_base64"]
-
-creds = Credentials.from_service_account_info(credentials_dict, scopes=scopes)
-client = gspread.authorize(creds)
-
+# 3. Hapus jejak file dari memori lokal setelah berhasil login demi keamanan
+if os.path.exists("secret_key.json"):
+    os.remove("secret_key.json")
+    
 # Buka spreadsheet berdasarkan nama yang telah dibuat di Tahap 1
 spreadsheet_name = "Rekap_Presensi_Siswa"
 sh = client.open(spreadsheet_name)
