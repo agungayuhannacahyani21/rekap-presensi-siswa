@@ -16,6 +16,7 @@ creds = Credentials.from_service_account_info(credentials_dict, scopes=scopes)
 client = gspread.authorize(creds)
 
 # Buka spreadsheet berdasarkan nama yang telah dibuat di Tahap 1
+spreadsheet_name = "Rekap_Presensi_Siswa"
 sh = client.open(spreadsheet_name)
 
 # ==========================================
