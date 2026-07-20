@@ -12,8 +12,10 @@ scopes = [
 
 # Pastikan file credentials.json berada di folder proyek yang sama dengan file app.py ini
 credentials_dict = dict(st.secrets["gcp_service_account"])
-raw_key = credentials_dict["private_key"]
-credentials_dict["private_key"] = raw_key.replace("\r", "").strip()
+
+
+credentials_dict["private_key"] = credentials_dict["private_key"].replace("\\n", "\n")
+
 creds = Credentials.from_service_account_info(credentials_dict, scopes=scopes)
 client = gspread.authorize(creds)
 
