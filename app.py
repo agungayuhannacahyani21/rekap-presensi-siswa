@@ -1,5 +1,6 @@
 import streamlit as st
 import gspread
+import base64
 from google.oauth2.service_account import Credentials
 
 # ==========================================
@@ -13,8 +14,11 @@ scopes = [
 # Pastikan file credentials.json berada di folder proyek yang sama dengan file app.py ini
 credentials_dict = dict(st.secrets["gcp_service_account"])
 
+raw_private_key = base64.b64decode(credentials_dict["private_key_base64"]).decode("utf-8")
+credentials_dict["private_key"] = raw_private_key
 
-credentials_dict["private_key"] = credentials_dict["private_key"].replace("\\n", "\n")
+if "private_key_base64" in credentials_dict:
+    del credentials_dict["private_key_base64"]
 
 creds = Credentials.from_service_account_info(credentials_dict, scopes=scopes)
 client = gspread.authorize(creds)
