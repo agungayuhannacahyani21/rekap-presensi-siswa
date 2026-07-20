@@ -2,22 +2,21 @@ import streamlit as st
 import gspread
 import json
 import os
-from google.oauth2.service_account import Credentials
 
-# ==========================================
-# 1. KONFIGURASI KONEKSI GOOGLE SHEETS
-# ==========================================
-# 1. Ambil teks JSON mentah dari Secrets dan simpan ke file sementara di server
+# 1. Ambil teks string JSON mentah dari Secrets
 json_string = st.secrets["textkey"]["json_data"]
 
-# Tulis string tersebut menjadi file fisik 'secret_key.json' di server Streamlit
-with open("secret_key.json", "w") as f:
-    f.write(json_string)
+# 2. Parsing string tersebut menjadi dictionary Python asli agar tanda \n terbaca dengan benar
+config_dict = json.loads(json_string)
 
-# 2. Login menggunakan metode bawaan gspread yang sangat stabil
+# 3. Tulis kembali menjadi file fisik 'secret_key.json' yang valid secara struktural
+with open("secret_key.json", "w") as f:
+    json.dump(config_dict, f)
+
+# 4. Login menggunakan file fisik tersebut
 client = gspread.service_account(filename="secret_key.json")
 
-# 3. Hapus jejak file dari memori lokal setelah berhasil login demi keamanan
+# 5. Hapus jejak file fisik demi keamanan data setelah berhasil login
 if os.path.exists("secret_key.json"):
     os.remove("secret_key.json")
     
