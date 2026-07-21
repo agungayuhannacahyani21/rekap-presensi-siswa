@@ -1,5 +1,7 @@
 import streamlit as st
 import gspread
+import json
+import tempfile
 from google.oauth2.service_account import Credentials
 
 # 1. Hak akses
@@ -8,17 +10,18 @@ scopes = [
     "https://www.googleapis.com/auth/drive"
 ]
 
-# 2. Ambil data dari Secrets dan buat salinan dictionary murni
-secrets_data = dict(st.secrets["gcp_service_account"])
+# 2. Ambil secrets & pastikan format private_key rapi
+info = dict(st.secrets["gcp_service_account"])
+if isinstance(info.get("private_key"), str):
+    info["private_key"] = info["private_key"].replace("\\n", "\n")
 
-# 3. Solusi Kunci: Konversi karakter baris baru ke bytes yang diakui cryptography Python 3.14
-pk = secrets_data["private_key"]
-if isinstance(pk, str):
-    # Mengganti \n literal menjadi newline murni dan mengubahnya menjadi bytes
-    secrets_data["private_key"] = pk.replace("\\n", "\n").encode("utf-8")
+# 3. Tulis kredensial ke file JSON sementara untuk dibaca pustaka Google
+with tempfile.NamedTemporaryFile(mode="w+", delete=False, suffix=".json") as temp_file:
+    json.dump(info, temp_file)
+    temp_file_path = temp_file.name
 
-# 4. Inisialisasi Kredensial
-creds = Credentials.from_service_account_info(secrets_data, scopes=scopes)
+# 4. Inisialisasi Kredensial langsung dari file JSON sementara
+creds = Credentials.from_service_account_file(temp_file_path, scopes=scopes)
 
 # 5. Konek ke Google Sheets
 client = gspread.authorize(creds)
