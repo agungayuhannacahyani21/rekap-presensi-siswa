@@ -1,6 +1,5 @@
 import streamlit as st
 import gspread
-import json
 from google.oauth2.service_account import Credentials
 
 # 1. Hak akses
@@ -9,17 +8,22 @@ scopes = [
     "https://www.googleapis.com/auth/drive"
 ]
 
-# 2. Parsing string JSON secara murni menggunakan json.loads()
-# Ini akan menangani newline \n dengan sempurna tanpa error RSA PEM
-info = json.loads(st.secrets["gcp_json"])
+# 2. Ambil data dari Secrets dan buat salinan dictionary murni
+secrets_data = dict(st.secrets["gcp_service_account"])
 
-# 3. Inisialisasi Kredensial
-creds = Credentials.from_service_account_info(info, scopes=scopes)
+# 3. Solusi Kunci: Konversi karakter baris baru ke bytes yang diakui cryptography Python 3.14
+pk = secrets_data["private_key"]
+if isinstance(pk, str):
+    # Mengganti \n literal menjadi newline murni dan mengubahnya menjadi bytes
+    secrets_data["private_key"] = pk.replace("\\n", "\n").encode("utf-8")
 
-# 4. Konek ke Google Sheets
+# 4. Inisialisasi Kredensial
+creds = Credentials.from_service_account_info(secrets_data, scopes=scopes)
+
+# 5. Konek ke Google Sheets
 client = gspread.authorize(creds)
 
-# 5. Buka spreadsheet presensi
+# 6. Buka spreadsheet presensi
 spreadsheet_name = "Rekap_Presensi_Siswa"
 sh = client.open(spreadsheet_name)
 
