@@ -10,18 +10,15 @@ scopes = [
     "https://www.googleapis.com/auth/drive"
 ]
 
-# 2. Ambil secrets & pastikan format private_key rapi
+# 2. Ambil secrets & ubah ke dictionary murni
 info = dict(st.secrets["gcp_service_account"])
-if isinstance(info.get("private_key"), str):
+
+# 3. PERBAIKAN UTAMA: Paksa perbaiki baris baru pada private_key
+if "private_key" in info:
     info["private_key"] = info["private_key"].replace("\\n", "\n")
 
-# 3. Tulis kredensial ke file JSON sementara untuk dibaca pustaka Google
-with tempfile.NamedTemporaryFile(mode="w+", delete=False, suffix=".json") as temp_file:
-    json.dump(info, temp_file)
-    temp_file_path = temp_file.name
-
-# 4. Inisialisasi Kredensial langsung dari file JSON sementara
-creds = Credentials.from_service_account_file(temp_file_path, scopes=scopes)
+# 4. Inisialisasi Kredensial langsung dari info dictionary
+creds = Credentials.from_service_account_info(info, scopes=scopes)
 
 # 5. Konek ke Google Sheets
 client = gspread.authorize(creds)
