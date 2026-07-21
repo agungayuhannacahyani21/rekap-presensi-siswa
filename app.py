@@ -2,24 +2,28 @@ import streamlit as st
 import gspread
 from google.oauth2.service_account import Credentials
 
-# 1. Definisikan hak akses (Scopes)
+# 1. Hak akses
 scopes = [
     "https://www.googleapis.com/auth/spreadsheets",
     "https://www.googleapis.com/auth/drive"
 ]
 
-# 2. Ambil kredensial dari Secrets Streamlit
+# 2. Ambil data secrets sebagai dictionary (buat salinan baru)
 credentials_dict = dict(st.secrets["gcp_service_account"])
 
-# 3. Bersihkan string private key dari masalah newline
-credentials_dict["private_key"] = credentials_dict["private_key"].replace("\\n", "\n")
+# 3. Ubah tipe data private_key menjadi 'bytes' agar aman dibaca library cryptography
+raw_key = credentials_dict["private_key"]
+if isinstance(raw_key, str):
+    # Mengganti string '\n' menjadi baris baru yang sebenarnya dan di-encode ke bytes
+    formatted_key = raw_key.replace("\\n", "\n").encode("utf-8")
+    credentials_dict["private_key"] = formatted_key
 
-# 4. Login langsung dari memori tanpa file .json
+# 4. Inisialisasi kredensial
 creds = Credentials.from_service_account_info(credentials_dict, scopes=scopes)
 client = gspread.authorize(creds)
 
 # 5. Buka spreadsheet presensi
-spreadsheet_name = "Nama File Spreadsheet Anda"  # Sesuaikan dengan nama Google Sheet Bapak
+spreadsheet_name = "Nama File Spreadsheet Anda"  # Sesuaikan dengan nama Google Sheet Anda
 sh = client.open(spreadsheet_name)
 
 # ==========================================
