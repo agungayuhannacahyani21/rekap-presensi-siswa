@@ -1,27 +1,25 @@
 import streamlit as st
 import gspread
-import json
-import os
+from google.oauth2.service_account import Credentials
 
-# 1. Ambil teks string JSON mentah dari Secrets
-json_string = st.secrets["textkey"]["json_data"]
+# 1. Definisikan hak akses (Scopes)
+scopes = [
+    "https://www.googleapis.com/auth/spreadsheets",
+    "https://www.googleapis.com/auth/drive"
+]
 
-# 2. Parsing string tersebut menjadi dictionary Python asli agar tanda \n terbaca dengan benar
-config_dict = json.loads(json_string)
+# 2. Ambil kredensial dari Secrets Streamlit
+credentials_dict = dict(st.secrets["gcp_service_account"])
 
-# 3. Tulis kembali menjadi file fisik 'secret_key.json' yang valid secara struktural
-with open("secret_key.json", "w") as f:
-    json.dump(config_dict, f)
+# 3. Bersihkan string private key dari masalah newline
+credentials_dict["private_key"] = credentials_dict["private_key"].replace("\\n", "\n")
 
-# 4. Login menggunakan file fisik tersebut
-client = gspread.service_account(filename="secret_key.json")
+# 4. Login langsung dari memori tanpa file .json
+creds = Credentials.from_service_account_info(credentials_dict, scopes=scopes)
+client = gspread.authorize(creds)
 
-# 5. Hapus jejak file fisik demi keamanan data setelah berhasil login
-if os.path.exists("secret_key.json"):
-    os.remove("secret_key.json")
-    
-# Buka spreadsheet berdasarkan nama yang telah dibuat di Tahap 1
-spreadsheet_name = "Rekap_Presensi_Siswa"
+# 5. Buka spreadsheet presensi
+spreadsheet_name = "Nama File Spreadsheet Anda"  # Sesuaikan dengan nama Google Sheet Bapak
 sh = client.open(spreadsheet_name)
 
 # ==========================================
