@@ -23,7 +23,7 @@ creds = Credentials.from_service_account_info(credentials_dict, scopes=scopes)
 client = gspread.authorize(creds)
 
 # 5. Buka spreadsheet presensi
-spreadsheet_name = "Nama File Spreadsheet Anda"  # Sesuaikan dengan nama Google Sheet Anda
+spreadsheet_name = "Rekap_Presensi_Siswa"  # Sesuaikan dengan nama Google Sheet Anda
 sh = client.open(spreadsheet_name)
 
 # ==========================================
