@@ -8,17 +8,20 @@ scopes = [
     "https://www.googleapis.com/auth/drive"
 ]
 
-# 2. Ambil kredensial langsung dari st.secrets bawaan Streamlit
-# Streamlit otomatis mengonversi format TOML [gcp_service_account] menjadi dict yang valid
-creds = Credentials.from_service_account_info(
-    st.secrets["gcp_service_account"], 
-    scopes=scopes
-)
+# 2. Ambil secrets dan konversi ke dict murni Python
+info = dict(st.secrets["gcp_service_account"])
 
-# 3. Konek ke Google Sheets
+# 3. Pastikan karakter \n terurai dengan tepat sebagai newline murni
+if "private_key" in info:
+    info["private_key"] = info["private_key"].replace("\\n", "\n")
+
+# 4. Inisialisasi Kredensial
+creds = Credentials.from_service_account_info(info, scopes=scopes)
+
+# 5. Konek ke Google Sheets
 client = gspread.authorize(creds)
 
-# 4. Buka spreadsheet presensi
+# 6. Buka spreadsheet presensi
 spreadsheet_name = "Rekap_Presensi_Siswa"
 sh = client.open(spreadsheet_name)
 
