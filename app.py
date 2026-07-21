@@ -8,23 +8,21 @@ scopes = [
     "https://www.googleapis.com/auth/drive"
 ]
 
-# 2. Ambil data secrets sebagai dictionary (buat salinan baru)
-credentials_dict = dict(st.secrets["gcp_service_account"])
+# 2. Ambil kredensial langsung dari st.secrets bawaan Streamlit
+# Streamlit otomatis mengonversi format TOML [gcp_service_account] menjadi dict yang valid
+creds = Credentials.from_service_account_info(
+    st.secrets["gcp_service_account"], 
+    scopes=scopes
+)
 
-# 3. Ubah tipe data private_key menjadi 'bytes' agar aman dibaca library cryptography
-raw_key = credentials_dict["private_key"]
-if isinstance(raw_key, str):
-    # Mengganti string '\n' menjadi baris baru yang sebenarnya dan di-encode ke bytes
-    formatted_key = raw_key.replace("\\n", "\n").encode("utf-8")
-    credentials_dict["private_key"] = formatted_key
-
-# 4. Inisialisasi kredensial
-creds = Credentials.from_service_account_info(credentials_dict, scopes=scopes)
+# 3. Konek ke Google Sheets
 client = gspread.authorize(creds)
 
-# 5. Buka spreadsheet presensi
-spreadsheet_name = "Rekap_Presensi_Siswa"  # Sesuaikan dengan nama Google Sheet Anda
+# 4. Buka spreadsheet presensi
+spreadsheet_name = "Rekap_Presensi_Siswa"
 sh = client.open(spreadsheet_name)
+
+st.success("Berhasil terhubung ke Google Spreadsheet!")
 
 # ==========================================
 # 2. FUNGSI MENARIK DATA MASTER SISWA
